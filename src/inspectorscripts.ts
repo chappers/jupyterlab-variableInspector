@@ -64,7 +64,8 @@ def _getcontentof(x):
     # returns content in a friendly way for python variables
     # pandas and numpy
     if pd and isinstance(x, pd.DataFrame):
-        return "DataFrame [%d rows x %d cols]" % x.shape
+        colnames = ', '.join(list(x.columns))
+        return "Column names: %s" % colnames
     if pd and isinstance(x, pd.Series):
         return "Series [%d rows]" % x.shape
     if np and isinstance(x, np.ndarray):
