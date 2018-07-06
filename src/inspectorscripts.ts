@@ -28,7 +28,12 @@ _nms.shell = _Jupyter.kernel.shell
 try:
     import numpy as np  # noqa: F401
 except ImportError:
-    pass
+    np = None
+
+try:
+    import pandas as pd
+except ImportError:
+    pd = None
 
 
 def _getsizeof(x):
@@ -43,18 +48,38 @@ def _getsizeof(x):
 
 
 def _getshapeof(x):
-    # returns the shape of x if it has one
-    # returns None otherwise - might want to return an empty string for an empty collum
-    try:
-        return x.shape
-    except AttributeError:  # x does not have a shape
-        return None
+    # returns content in a friendly way for python variables
+    # pandas and numpy
+    if pd and isinstance(x, pd.DataFrame):
+        return "DataFrame [%d rows x %d cols]" % x.shape
+    if pd and isinstance(x, pd.Series):
+        return "Series [%d rows]" % x.shape
+    if np and isinstance(x, np.ndarray):
+        shape = " x ".join([str(i) for i in x.shape])
+        return "Array [%s]" %  shape
+    return str(x)[:200]
+
+
+def _getcontentof(x):
+    # returns content in a friendly way for python variables
+    # pandas and numpy
+    if pd and isinstance(x, pd.DataFrame):
+        return "DataFrame [%d rows x %d cols]" % x.shape
+    if pd and isinstance(x, pd.Series):
+        return "Series [%d rows]" % x.shape
+    if np and isinstance(x, np.ndarray):
+        return x.__repr__()
+    return str(x)[:200]
 
 
 def _var_dic_list():
     types_to_exclude = ['module', 'function', 'builtin_function_or_method','instance', '_Feature', 'type', 'ufunc']
     values = _nms.who_ls()
-    vardic = [{'varName': v, 'varType': type(eval(v)).__name__, 'varSize': str(_getsizeof(eval(v))), 'varShape': str(_getshapeof(eval(v))) if _getshapeof(eval(v)) else '', 'varContent': str(eval(v))[:200]}  # noqa
+    vardic = [{'varName': v, 
+               'varType': type(eval(v)).__name__, 
+               'varSize': str(_getsizeof(eval(v))), 
+               'varShape': str(_getshapeof(eval(v))) if _getshapeof(eval(v)) else '', 
+               'varContent': str(_getcontentof(eval(v)))}  # noqa
         for v in values if ((str(eval(v))[0] != "<") or (isinstance(eval(v), str)))] #Prevent showing classes, modules etc.
     return json.dumps(vardic)
 `;
