@@ -30,7 +30,8 @@ export
 
 
     get kerneltype(): string {
-        return this._session.kernel.name;
+        console.log("kernel_type: " + this._session.kernel.info.language_info.name);
+        return this._session.kernel.info.language_info.name;
     }
 
 
@@ -38,6 +39,14 @@ export
      *  A Promise that is fulfilled when the session associated w/ the connector is ready.
      */
     get ready(): Promise<void> {
+        // this._session.kernel.info.language_info.name
+        this._session.kernel.requestComplete({
+            code: 'hello',
+            cursor_pos: 4
+          }).then(() => {
+            return this._session.ready;
+          });
+        
         return this._session.ready;
     }
 
@@ -64,6 +73,7 @@ export
 
         return kernel.ready.then(() => {
             let future: Kernel.IFuture = kernel.requestExecute( request );
+            console.log("kernel_request: " + kernel.info.language_info.name);
 
             future.onIOPub = ( ( msg: KernelMessage.IIOPubMessage ) => {
                 ioCallback( msg );
