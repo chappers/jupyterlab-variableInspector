@@ -132,7 +132,7 @@ const consoles: JupyterLabPlugin<void> = {
 
                 
                 connector.ready.then(() => { // Create connector and init w script if it exists for kernel type.
-                    let kerneltype: string = connector.kerneltype;
+                    let kerneltype: string = connector.kerneltype() as string; // kernel type info becomes availabe != kernel is ready
                     let scripts: Promise<Languages.LanguageModel> = Languages.getScript( kerneltype );
                 
                     scripts.then(( result: Languages.LanguageModel ) => {
@@ -219,8 +219,11 @@ const notebooks: JupyterLabPlugin<void> = {
                 const connector = new KernelConnector( { session } );
                 
                 connector.ready.then(() => { // Create connector and init w script if it exists for kernel type.
-                    let kerneltype: string = connector.kerneltype;
+                    let kernelready: Boolean = connector.kernelReady();
+                    let kerneltype: string = connector.kerneltype() as string;
                     let scripts: Promise<Languages.LanguageModel> = Languages.getScript( kerneltype );
+
+                    
                 
                     scripts.then(( result: Languages.LanguageModel ) => {
                         let initScript = result.initScript;

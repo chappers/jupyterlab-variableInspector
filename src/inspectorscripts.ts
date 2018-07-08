@@ -100,6 +100,9 @@ def _jupyterlab_variableinspector_default(o):
 
     public static getScript( lang: string ): Promise<Languages.LanguageModel> {
         return new Promise( function( resolve, reject ) {
+            if ( lang.startsWith("python")){
+                resolve( Languages.scripts["python3"] );
+            }
             if ( lang in Languages.scripts ) {
                 resolve( Languages.scripts[lang] );
             } else {
