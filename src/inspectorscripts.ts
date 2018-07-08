@@ -34,10 +34,17 @@ try:
 except ImportError:
     pd = None
 
+try:
+    import pyspark
+except ImportError:
+    pyspark = None
+
 def _jupyterlab_variableinspector_getsizeof(x):
     if type(x).__name__ in ['ndarray', 'Series']:
         return x.nbytes
-    elif type(x).__name__ == 'DataFrame':
+    elif pyspark and isinstance(x, pyspark.sql.DataFrame):
+        return "?"
+    elif pd and type(x).__name__ == 'DataFrame':
         return x.memory_usage().sum()
     else:
         return getsizeof(x)
@@ -50,6 +57,8 @@ def _jupyterlab_variableinspector_getshapeof(x):
     if np and isinstance(x, np.ndarray):
         shape = " x ".join([str(i) for i in x.shape])
         return "Array [%s]" %  shape
+    if pyspark and isinstance(x, pyspark.sql.DataFrame):
+        return "Spark DataFrame [? rows x %d cols]" % len(x.columns)
     return None
 
 def _jupyterlab_variableinspector_getcontentof(x):
@@ -62,17 +71,28 @@ def _jupyterlab_variableinspector_getcontentof(x):
         return "Series [%d rows]" % x.shape
     if np and isinstance(x, np.ndarray):
         return x.__repr__()
+    if pyspark and isinstance(x, pyspark.sql.DataFrame):
+        return x.__repr__()
     return str(x)[:200]
 
 
 def _jupyterlab_variableinspector_dict_list():
+    def keep_cond(v):
+        if isinstance(eval(v), str):
+            return True
+        if str(eval(v))[0] == "<":
+            return False
+        if  v in ['np', 'pd', 'pyspark']:
+            return eval(v) is not None
+        return True
+
     values = _jupyterlab_variableinspector_nms.who_ls()
     vardic = [{'varName': _v, 'varType': type(eval(_v)).__name__, 
     'varSize': str(_jupyterlab_variableinspector_getsizeof(eval(_v))), 
     'varShape': str(_jupyterlab_variableinspector_getshapeof(eval(_v))) if _jupyterlab_variableinspector_getshapeof(eval(_v)) else '', 
     'varContent': str(_jupyterlab_variableinspector_getcontentof(eval(_v))), 
     'isMatrix': True if type(eval(_v)).__name__ in ["DataFrame", "ndarray", "Series"] else False}
-            for _v in values if ((str(eval(_v))[0] != "<") or (isinstance(eval(_v), str)))]
+            for _v in values if keep_cond(_v)]
     return json.dumps(vardic)
 
 def _jupyterlab_variableinspector_getmatrixcontent(x):
