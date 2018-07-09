@@ -29,7 +29,6 @@ try:
 except ImportError:
     np = None
 
-
 try:
     import pandas as pd
 except ImportError:
@@ -59,7 +58,6 @@ def _jupyterlab_variableinspector_getsizeof(x):
         return x.memory_usage().sum()
     else:
         return getsizeof(x)
-
 
 def _jupyterlab_variableinspector_getshapeof(x):
     if pd and isinstance(x, pd.DataFrame):
