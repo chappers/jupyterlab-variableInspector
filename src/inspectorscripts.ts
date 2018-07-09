@@ -39,10 +39,17 @@ try:
 except ImportError:
     pyspark = None
 
+try:
+    import tensorflow as tf
+except ImportError:
+    tf = None
+
 def _jupyterlab_variableinspector_getsizeof(x):
     if type(x).__name__ in ['ndarray', 'Series']:
         return x.nbytes
     elif pyspark and isinstance(x, pyspark.sql.DataFrame):
+        return "?"
+    elif tf and isinstance(x, tf.Variable):
         return "?"
     elif pd and type(x).__name__ == 'DataFrame':
         return x.memory_usage().sum()
@@ -59,6 +66,9 @@ def _jupyterlab_variableinspector_getshapeof(x):
         return "Array [%s]" %  shape
     if pyspark and isinstance(x, pyspark.sql.DataFrame):
         return "Spark DataFrame [? rows x %d cols]" % len(x.columns)
+    if tf and isinstance(x, tf.Variable):
+        shape = " x ".join([int(i) for i in x.shape])
+        return "Tensorflow Variable [%s]" % shape
     return None
 
 def _jupyterlab_variableinspector_getcontentof(x):
@@ -73,6 +83,8 @@ def _jupyterlab_variableinspector_getcontentof(x):
         return x.__repr__()
     if pyspark and isinstance(x, pyspark.sql.DataFrame):
         return x.__repr__()
+    if tf and isinstance(x, tf.Variable):
+        return x.__repr__()
     return str(x)[:200]
 
 
@@ -80,10 +92,14 @@ def _jupyterlab_variableinspector_dict_list():
     def keep_cond(v):
         if isinstance(eval(v), str):
             return True
+        if tf and isinstance(eval(v), tf.Variable):
+            return True
         if str(eval(v))[0] == "<":
             return False
-        if  v in ['np', 'pd', 'pyspark']:
+        if  v in ['np', 'pd', 'pyspark', 'tf']:
             return eval(v) is not None
+        if str(eval(v)).startswith("_Feature"):
+            return False
         return True
 
     values = _jupyterlab_variableinspector_nms.who_ls()
