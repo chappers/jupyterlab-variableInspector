@@ -29,15 +29,18 @@ try:
 except ImportError:
     np = None
 
+
 try:
     import pandas as pd
 except ImportError:
     pd = None
 
+
 try:
     import pyspark
 except ImportError:
     pyspark = None
+
 
 try:
     import tensorflow as tf
@@ -57,6 +60,7 @@ def _jupyterlab_variableinspector_getsizeof(x):
     else:
         return getsizeof(x)
 
+
 def _jupyterlab_variableinspector_getshapeof(x):
     if pd and isinstance(x, pd.DataFrame):
         return "DataFrame [%d rows x %d cols]" % x.shape
@@ -71,6 +75,7 @@ def _jupyterlab_variableinspector_getshapeof(x):
         shape = " x ".join([str(int(i)) for i in x.shape])
         return "Tensorflow Variable [%s]" % shape
     return None
+
 
 def _jupyterlab_variableinspector_getcontentof(x):
     # returns content in a friendly way for python variables
@@ -127,8 +132,12 @@ def _jupyterlab_variableinspector_dict_list():
             for _v in values if keep_cond(_v)]
     return json.dumps(vardic)
 
+
 def _jupyterlab_variableinspector_getmatrixcontent(x):
-    if np and pd and type(x).__name__ in ["Series", "DataFrame"]:
+    if pd and pyspark and isinstance(x, pyspark.sql.DataFrame):
+        df = x.limit(pd.get_option('max_rows')).toPandas()
+        return _jupyterlab_variableinspector_getmatrixcontent(df.copy())
+    elif np and pd and type(x).__name__ in ["Series", "DataFrame"]:
         x.columns = x.columns.map(str)
         response = {"schema": pd.io.json.build_table_schema(x),"data": x.to_dict(orient="records")}
         return json.dumps(response,default=_jupyterlab_variableinspector_default)
@@ -137,12 +146,10 @@ def _jupyterlab_variableinspector_getmatrixcontent(x):
         df.columns = df.columns.map(str)
         response = {"schema": pd.io.json.build_table_schema(df), "data": df.to_dict(orient="records")}
         return json.dumps(response,default=_jupyterlab_variableinspector_default)
-    elif pd and pyspark and isinstance(x, pyspark.sql.DataFrame):
-        df = x.limit(pd.get_option('max_rows')).toPandas()
-        return _jupyterlab_variableinspector_getmatrixcontent(df)
     elif tf and isinstance(x, tf.Variable):
         df = K.get_value(x)
         return _jupyterlab_variableinspector_getmatrixcontent(df)
+
 
 def _jupyterlab_variableinspector_default(o):
     if isinstance(o, np.number): return int(o)  
