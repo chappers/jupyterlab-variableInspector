@@ -131,7 +131,8 @@ export
                 let name = args[index].varName;
                 row.onclick = ( ev: MouseEvent ): any => {
                     this._source.performMatrixInspection( name ).then(( model: DataModel ) => {
-                        this._showMatrix( model, name )
+                        // prettify by type later.
+                        this._showMatrix( model, name, "data" )
                     } );
                 }
                 row.bgColor = "#e5e5e5";
@@ -158,7 +159,7 @@ export
 
 
 
-    private _showMatrix( dataModel: DataModel, name: string ): void {
+    private _showMatrix( dataModel: DataModel, name: string, type: string): void {
         let datagrid = new DataGrid( {
             baseRowSize: 32,
             baseColumnSize: 128,
@@ -166,7 +167,7 @@ export
             baseColumnHeaderSize: 32
         } );
         datagrid.model = dataModel;
-        datagrid.title.label = "Matrix: " + name;
+        datagrid.title.label = type + ": " + name;
         datagrid.title.closable = true;
         let lout: DockLayout = <DockLayout>this.parent.layout;
         lout.addWidget( datagrid , {mode: "split-right"});

@@ -30,22 +30,8 @@ export
 
 
     get kerneltype(): string {
-        try {
-            console.log("session name: " + this._session.name);
-            console.log("session kernel name: " + this._session.kernel.name);
-        } catch(e) {
-            console.log(e);
-        }
-        
-        try {
-            console.log("session language info name: " + this._session.kernel.info.language_info.name);
-            return this._session.kernel.info.language_info.name;
-        } catch(e) {
-            console.log(e);
-        } finally {
-            console.log("session kernel name: " + this._session.kernel.name);
-            return this._session.kernel.name;
-        }
+        console.log("Session kernel language: " + this._session.kernel.info.language_info.name);
+        return this._session.kernel.info.language_info.name;
     }
 
 
@@ -53,28 +39,7 @@ export
      *  A Promise that is fulfilled when the session associated w/ the connector is ready.
      */
     get ready(): Promise<void> {
-        try {
-            console.log("session ready name:" + this._session.name);
-            console.log("session ready isready: " + this._session.kernel.isReady);
-        } catch (e) {
-            console.log(e);
-        }
-
-        try {
-            console.log("session ready kernel isready: " + this._session.kernel.isReady);
-        } catch(e) {
-            console.log(e);
-            console.log("session ready session isready: " + this._session.isReady);
-        }        
-
-        try {
-            return this._session.kernel.ready;
-        } catch(e) {
-            console.log(e);
-        } finally {
-            return this._session.ready;
-        }
-        
+        return this._session.kernel.ready;
     }
 
     /**

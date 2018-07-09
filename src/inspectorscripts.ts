@@ -138,8 +138,8 @@ def _jupyterlab_variableinspector_getmatrixcontent(x):
         return _jupyterlab_variableinspector_getmatrixcontent(df.copy())
     elif np and pd and type(x).__name__ in ["Series", "DataFrame"]:
         x.columns = x.columns.map(str)
-        response = {"schema": pd.io.json.build_table_schema(x),"data": x.to_dict(orient="records")}
-        return json.dumps(response,default=_jupyterlab_variableinspector_default)
+        response = {"schema": pd.io.json.build_table_schema(x), "data": x.to_dict(orient="records")}
+        return json.dumps(response, default=_jupyterlab_variableinspector_default)
     elif np and pd and type(x).__name__ in ["ndarray"]:
         df = pd.DataFrame(x)
         df.columns = df.columns.map(str)
@@ -164,7 +164,7 @@ def _jupyterlab_variableinspector_default(o):
                                              fn(get(x, pos = pos)))
         names <- ls(pos = pos, pattern = pattern)
         if (length(names) == 0){
-            return(data.frame())
+            return(jsonlite::toJSON(data.frame()))
         }
         obj.class <- napply(names, function(x) as.character(class(x))[1])
         obj.mode <- napply(names, mode)
