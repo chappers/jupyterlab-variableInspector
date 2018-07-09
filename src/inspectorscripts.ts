@@ -84,7 +84,7 @@ def _jupyterlab_variableinspector_getcontentof(x):
     if pyspark and isinstance(x, pyspark.sql.DataFrame):
         return x.__repr__()
     if tf and isinstance(x, tf.Variable):
-        return x.__repr__()
+        return x.__repr__().replace("<", "").replace(">", "").strip()
     return str(x)[:200]
 
 
