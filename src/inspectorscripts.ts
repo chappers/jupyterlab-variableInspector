@@ -67,7 +67,7 @@ def _jupyterlab_variableinspector_getshapeof(x):
     if pyspark and isinstance(x, pyspark.sql.DataFrame):
         return "Spark DataFrame [? rows x %d cols]" % len(x.columns)
     if tf and isinstance(x, tf.Variable):
-        shape = " x ".join([int(i) for i in x.shape])
+        shape = " x ".join([str(int(i)) for i in x.shape])
         return "Tensorflow Variable [%s]" % shape
     return None
 
