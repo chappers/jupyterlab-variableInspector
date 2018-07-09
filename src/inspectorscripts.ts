@@ -124,7 +124,8 @@ def _jupyterlab_variableinspector_dict_list():
         return True
 
     values = _jupyterlab_variableinspector_nms.who_ls()
-    vardic = [{'varName': _v, 'varType': type(eval(_v)).__name__, 
+    vardic = [{'varName': _v, 
+    'varType': type(eval(_v)).__name__, 
     'varSize': str(_jupyterlab_variableinspector_getsizeof(eval(_v))), 
     'varShape': str(_jupyterlab_variableinspector_getshapeof(eval(_v))) if _jupyterlab_variableinspector_getshapeof(eval(_v)) else '', 
     'varContent': str(_jupyterlab_variableinspector_getcontentof(eval(_v))), 
@@ -155,12 +156,55 @@ def _jupyterlab_variableinspector_default(o):
     if isinstance(o, np.number): return int(o)  
     raise TypeError
 `;
+
+    static r_script: string = `
+
+    # improved list of objects
+    .ls.objects <- function (pos = 1, pattern, order.by,
+                            decreasing=FALSE, head=FALSE, n=5) {
+        napply <- function(names, fn) sapply(names, function(x)
+                                             fn(get(x, pos = pos)))
+        names <- ls(pos = pos, pattern = pattern)
+        if (length(names) == 0){
+            return(data.frame())
+        }
+        obj.class <- napply(names, function(x) as.character(class(x))[1])
+        obj.mode <- napply(names, mode)
+        obj.type <- ifelse(is.na(obj.class), obj.mode, obj.class)
+        obj.size <- napply(names, object.size)
+        obj.dim <- t(napply(names, function(x)
+                            as.numeric(dim(x))[1:2]))
+        vec <- is.na(obj.dim)[, 1] & (obj.type != "function")
+        obj.dim[vec, 1] <- napply(names, length)[vec]
+        out <- data.frame(obj.type, obj.size, obj.dim)
+        names(out) <- c("varType", "varSize", "Rows", "Columns")
+        out$varShape <- paste(out$Rows, " x ", out$Columns)
+        out$varContent <- paste(out$Rows, " x ", out$Columns)
+        out$isMatrix <- FALSE
+        out$varName <- row.names(out)
+                            
+        # drop columns Rows and Columns
+        out <- out[, !(names(out) %in% c("Rows", "Columns"))]
+        rownames(out) <- NULL
+    
+        if (!missing(order.by))
+            out <- out[order(out[[order.by]], decreasing=decreasing), ]
+        if (head)
+            out <- head(out, n)
+        jsonlite::toJSON(out)
+    }
+`;
     
     static scripts: { [index: string]: Languages.LanguageModel } = {
         "python": {
             initScript: Languages.py_script,
             queryCommand: "_jupyterlab_variableinspector_dict_list()",
             matrixQueryCommand: "_jupyterlab_variableinspector_getmatrixcontent"
+        },
+        "R": {
+            initScript: Languages.r_script,
+            queryCommand: ".ls.objects()",
+            matrixQueryCommand: ".ls.objects"
         }
     };
 
