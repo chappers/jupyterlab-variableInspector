@@ -41,7 +41,7 @@ export
     }
 
     get kernelname(): string {
-        return this._session.kernel.name;
+        return this._session.kernel.name + " (<i>" + this._session.name + "</i>)";
     }
 
 
